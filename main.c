@@ -82,6 +82,10 @@ enum  {
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
+// PIUIO input and output data
+uint8_t inputData[8];
+uint8_t lampData[8];
+
 //------------- prototypes -------------//
 void led_blinking_task(void);
 void cdc_task(void);
@@ -171,7 +175,7 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_requ
         return true;
 
       case 0xC0: // Requesting input data
-        return tud_control_xfer(rhport, request, (void*)(uintptr_t) &data, length);
+        return tud_control_xfer(rhport, request, (void*)(uintptr_t) inputData, 8);
 
       default: break;
     }
@@ -184,6 +188,26 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_requ
 // Renamed from webusb_task, do we actually need this?
 void piuio_task(void)
 {
+    // Read our switch inputs into the game-ready inputData array
+    // P1
+    bool input = gpio_get(pinSwitch[0]); if (input) { inputData[0] = tu_bit_set(inputData[0], 3); } else { inputData[0] = tu_bit_clear(inputData[0], 3); }
+    bool input = gpio_get(pinSwitch[1]); if (input) { inputData[0] = tu_bit_set(inputData[0], 0); } else { inputData[0] = tu_bit_clear(inputData[0], 0); }
+    bool input = gpio_get(pinSwitch[2]); if (input) { inputData[0] = tu_bit_set(inputData[0], 2); } else { inputData[0] = tu_bit_clear(inputData[0], 2); }
+    bool input = gpio_get(pinSwitch[3]); if (input) { inputData[0] = tu_bit_set(inputData[0], 1); } else { inputData[0] = tu_bit_clear(inputData[0], 1); }
+    bool input = gpio_get(pinSwitch[4]); if (input) { inputData[0] = tu_bit_set(inputData[0], 4); } else { inputData[0] = tu_bit_clear(inputData[0], 4); }
+
+    // P2
+    bool input = gpio_get(pinSwitch[5]); if (input) { inputData[2] = tu_bit_set(inputData[2], 3); } else { inputData[2] = tu_bit_clear(inputData[2], 3); }
+    bool input = gpio_get(pinSwitch[6]); if (input) { inputData[2] = tu_bit_set(inputData[2], 0); } else { inputData[2] = tu_bit_clear(inputData[2], 0); }
+    bool input = gpio_get(pinSwitch[7]); if (input) { inputData[2] = tu_bit_set(inputData[2], 2); } else { inputData[2] = tu_bit_clear(inputData[2], 2); }
+    bool input = gpio_get(pinSwitch[8]); if (input) { inputData[2] = tu_bit_set(inputData[2], 1); } else { inputData[2] = tu_bit_clear(inputData[2], 1); }
+    bool input = gpio_get(pinSwitch[9]); if (input) { inputData[2] = tu_bit_set(inputData[2], 4); } else { inputData[2] = tu_bit_clear(inputData[2], 4); }
+
+    // Test/Service
+    bool input = gpio_get(pinSwitch[10]); if (input) { inputData[1] = tu_bit_set(inputData[1], 1); } else { inputData[1] = tu_bit_clear(inputData[1], 1); }
+    bool input = gpio_get(pinSwitch[11]); if (input) { inputData[1] = tu_bit_set(inputData[1], 2); } else { inputData[1] = tu_bit_clear(inputData[1], 2); }
+
+    // Check if we've received... data..?
     if ( tud_vendor_available() )
     {
       uint8_t buf[64];
