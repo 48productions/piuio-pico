@@ -57,8 +57,8 @@
 
 // Set pins for the switches/LEDs
 // Order of DL, UL, C, UR, DR for each player, then test and service switches
-const uint8_t pinSwitch = {19, 21, 10, 6, 8, 17, 27, 2, 0, 4, 15, 14};
-const uint8_t pinLED = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5};
+const uint8_t[] pinSwitch = {19, 21, 10, 6, 8, 17, 27, 2, 0, 4, 15, 14};
+const uint8_t[] pinLED = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5};
 const uint8_t pinNEO = 22;
 
 
@@ -216,7 +216,6 @@ void piuio_task(void)
       // echo back to both web serial and cdc
       //echo_all(buf, count);
     }
-  }
 }
 
 //--------------------------------------------------------------------+

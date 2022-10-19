@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
 
-add_executable(piuio_pico)
+include(pico_sdk_import.cmake)
+
+project(piuio_pico)
+
+pico_sdk_init()
+
+add_executable(piuio_pico
+    main.c)
 
 target_sources(piuio_pico PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.c
@@ -19,6 +26,3 @@ target_link_libraries(piuio_pico PUBLIC pico_stdlib tinyusb_device tinyusb_board
 #target_compile_definitions(piuio_pico PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
 
 pico_add_extra_outputs(piuio_pico)
-
-# add url via pico_set_program_url
-example_auto_set_url(piuio_pico)
