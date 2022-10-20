@@ -20,9 +20,12 @@ target_include_directories(piuio_pico PUBLIC
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(piuio_pico PUBLIC pico_stdlib tinyusb_device tinyusb_board)
+target_link_libraries(piuio_pico PUBLIC pico_stdlib tinyusb_board tinyusb_device)
 
 # Uncomment this line to enable fix for Errata RP2040-E5 (the fix requires use of GPIO 15)
 #target_compile_definitions(piuio_pico PUBLIC PICO_RP2040_USB_DEVICE_ENUMERATION_FIX=1)
 
+pico_add_extra_outputs(piuio_pico)
+pico_enable_stdio_usb(piuio_pico 0)
+pico_enable_stdio_uart(piuio_pico 0)
 pico_add_extra_outputs(piuio_pico)
