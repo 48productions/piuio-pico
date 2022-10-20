@@ -51,11 +51,17 @@ enum  {
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
+const uint8_t STATE_CAB_PLAYER_1 = 1;
+const uint8_t STATE_CAB_PLAYER_2 = 3;
+const uint8_t STATE_PLAYER_1 = 0;
+const uint8_t STATE_PLAYER_2 = 2;
+
 // Set pins for the switches/LEDs
 // Order of DL, UL, C, UR, DR for each player, then test and service switches
 const uint8_t pinSwitch[12] = {19, 21, 10, 6, 8, 17, 27, 2, 0, 4, 15, 14};
 const uint8_t pinLED[10] = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5};
 const uint8_t pinNEO = 22;
+
 
 // PIUIO input and output data
 uint8_t inputData[8];
@@ -63,6 +69,26 @@ uint8_t lampData[8];
 
 void led_blinking_task(void);
 void hid_task(void);
+
+bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
+    // nothing to with DATA & ACK stage
+    if (stage != CONTROL_STAGE_SETUP) return true;
+
+    // Request 0xAE = IO Time
+    if (request->bRequest == 0xAE) {
+        switch (request->bmRequestType_bit.type) {
+            case 0x40: // Received output data
+                // I have a feeling we may need to receive the data from another state (I.E. remove the stage setup check, above)
+                return true;
+
+            case 0xC0: // Requesting input data
+                return tud_control_xfer(rhport, request, (void *) (uintptr_t) inputData, 8);
+
+            default:
+                break;
+        }
+    }
+}
 
 // Renamed from webusb_task, do we actually need this?
 void piuio_task(void)
@@ -85,20 +111,11 @@ void piuio_task(void)
     input = gpio_get(pinSwitch[8]); if (input) { inputData[2] = tu_bit_set(inputData[2], 1); } else { inputData[2] = tu_bit_clear(inputData[2], 1); }
     input = gpio_get(pinSwitch[9]); if (input) { inputData[2] = tu_bit_set(inputData[2], 4); } else { inputData[2] = tu_bit_clear(inputData[2], 4); }
 
+    inputData[2] = (gpio_get(pinSwitch[5]) ? tu_bit_set(inputData[2], 3) : tu_bit_clear(inputData[2], 3));
+
     // Test/Service
     input = gpio_get(pinSwitch[10]); if (input) { inputData[1] = tu_bit_set(inputData[1], 1); } else { inputData[1] = tu_bit_clear(inputData[1], 1); }
     input = gpio_get(pinSwitch[11]); if (input) { inputData[1] = tu_bit_set(inputData[1], 2); } else { inputData[1] = tu_bit_clear(inputData[1], 2); }
-
-    // Check if we've received... data..?
-    if ( tud_vendor_available() )
-    {
-        uint8_t buf[64];
-        uint32_t count = tud_vendor_read(buf, sizeof(buf));
-
-        // echo back to both web serial and cdc
-        //echo_all(buf, count);
-    }
-
 }
 
 
