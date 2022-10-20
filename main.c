@@ -47,6 +47,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "pico/stdlib.h"
 #include "bsp/board.h"
 #include "tusb.h"
 #include "usb_descriptors.h"
@@ -57,8 +58,8 @@
 
 // Set pins for the switches/LEDs
 // Order of DL, UL, C, UR, DR for each player, then test and service switches
-const uint8_t[] pinSwitch = {19, 21, 10, 6, 8, 17, 27, 2, 0, 4, 15, 14};
-const uint8_t[] pinLED = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5};
+const uint8_t pinSwitch[12] = {19, 21, 10, 6, 8, 17, 27, 2, 0, 4, 15, 14};
+const uint8_t pinLED[10] = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5};
 const uint8_t pinNEO = 22;
 
 
@@ -191,21 +192,21 @@ void piuio_task(void)
     // Read our switch inputs into the game-ready inputData array
     // P1
     bool input = gpio_get(pinSwitch[0]); if (input) { inputData[0] = tu_bit_set(inputData[0], 3); } else { inputData[0] = tu_bit_clear(inputData[0], 3); }
-    bool input = gpio_get(pinSwitch[1]); if (input) { inputData[0] = tu_bit_set(inputData[0], 0); } else { inputData[0] = tu_bit_clear(inputData[0], 0); }
-    bool input = gpio_get(pinSwitch[2]); if (input) { inputData[0] = tu_bit_set(inputData[0], 2); } else { inputData[0] = tu_bit_clear(inputData[0], 2); }
-    bool input = gpio_get(pinSwitch[3]); if (input) { inputData[0] = tu_bit_set(inputData[0], 1); } else { inputData[0] = tu_bit_clear(inputData[0], 1); }
-    bool input = gpio_get(pinSwitch[4]); if (input) { inputData[0] = tu_bit_set(inputData[0], 4); } else { inputData[0] = tu_bit_clear(inputData[0], 4); }
+    input = gpio_get(pinSwitch[1]); if (input) { inputData[0] = tu_bit_set(inputData[0], 0); } else { inputData[0] = tu_bit_clear(inputData[0], 0); }
+    input = gpio_get(pinSwitch[2]); if (input) { inputData[0] = tu_bit_set(inputData[0], 2); } else { inputData[0] = tu_bit_clear(inputData[0], 2); }
+    input = gpio_get(pinSwitch[3]); if (input) { inputData[0] = tu_bit_set(inputData[0], 1); } else { inputData[0] = tu_bit_clear(inputData[0], 1); }
+    input = gpio_get(pinSwitch[4]); if (input) { inputData[0] = tu_bit_set(inputData[0], 4); } else { inputData[0] = tu_bit_clear(inputData[0], 4); }
 
     // P2
-    bool input = gpio_get(pinSwitch[5]); if (input) { inputData[2] = tu_bit_set(inputData[2], 3); } else { inputData[2] = tu_bit_clear(inputData[2], 3); }
-    bool input = gpio_get(pinSwitch[6]); if (input) { inputData[2] = tu_bit_set(inputData[2], 0); } else { inputData[2] = tu_bit_clear(inputData[2], 0); }
-    bool input = gpio_get(pinSwitch[7]); if (input) { inputData[2] = tu_bit_set(inputData[2], 2); } else { inputData[2] = tu_bit_clear(inputData[2], 2); }
-    bool input = gpio_get(pinSwitch[8]); if (input) { inputData[2] = tu_bit_set(inputData[2], 1); } else { inputData[2] = tu_bit_clear(inputData[2], 1); }
-    bool input = gpio_get(pinSwitch[9]); if (input) { inputData[2] = tu_bit_set(inputData[2], 4); } else { inputData[2] = tu_bit_clear(inputData[2], 4); }
+    input = gpio_get(pinSwitch[5]); if (input) { inputData[2] = tu_bit_set(inputData[2], 3); } else { inputData[2] = tu_bit_clear(inputData[2], 3); }
+    input = gpio_get(pinSwitch[6]); if (input) { inputData[2] = tu_bit_set(inputData[2], 0); } else { inputData[2] = tu_bit_clear(inputData[2], 0); }
+    input = gpio_get(pinSwitch[7]); if (input) { inputData[2] = tu_bit_set(inputData[2], 2); } else { inputData[2] = tu_bit_clear(inputData[2], 2); }
+    input = gpio_get(pinSwitch[8]); if (input) { inputData[2] = tu_bit_set(inputData[2], 1); } else { inputData[2] = tu_bit_clear(inputData[2], 1); }
+    input = gpio_get(pinSwitch[9]); if (input) { inputData[2] = tu_bit_set(inputData[2], 4); } else { inputData[2] = tu_bit_clear(inputData[2], 4); }
 
     // Test/Service
-    bool input = gpio_get(pinSwitch[10]); if (input) { inputData[1] = tu_bit_set(inputData[1], 1); } else { inputData[1] = tu_bit_clear(inputData[1], 1); }
-    bool input = gpio_get(pinSwitch[11]); if (input) { inputData[1] = tu_bit_set(inputData[1], 2); } else { inputData[1] = tu_bit_clear(inputData[1], 2); }
+    input = gpio_get(pinSwitch[10]); if (input) { inputData[1] = tu_bit_set(inputData[1], 1); } else { inputData[1] = tu_bit_clear(inputData[1], 1); }
+    input = gpio_get(pinSwitch[11]); if (input) { inputData[1] = tu_bit_set(inputData[1], 2); } else { inputData[1] = tu_bit_clear(inputData[1], 2); }
 
     // Check if we've received... data..?
     if ( tud_vendor_available() )
