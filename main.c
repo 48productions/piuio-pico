@@ -1,58 +1,9 @@
-/* 
- * The MIT License (MIT)
- *
- * Copyright (c) 2019 Ha Thach (tinyusb.org)
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 #include "bsp/board.h"
-#include "tusb.h"
-
-#include "usb_descriptors.h"
 #include "hardware/gpio.h"
 #include "device/usbd.h"
 
-//--------------------------------------------------------------------+
-// MACRO CONSTANT TYPEDEF PROTYPES
-//--------------------------------------------------------------------+
-
-/* Blink pattern
- * - 250 ms  : device not mounted
- * - 1000 ms : device mounted
- * - 2500 ms : device is suspended
- */
-enum  {
-    BLINK_NOT_MOUNTED = 250,
-    BLINK_MOUNTED = 1000,
-    BLINK_SUSPENDED = 2500,
-};
-
-static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
-
 const uint8_t STATE_CAB_PLAYER_1 = 1;
-const uint8_t STATE_CAB_PLAYER_2 = 3;
 const uint8_t STATE_PLAYER_1 = 0;
 const uint8_t STATE_PLAYER_2 = 2;
 
@@ -62,13 +13,9 @@ const uint8_t pinSwitch[12] = {19, 21, 10, 6, 8, 17, 27, 2, 0, 4, 15, 14};
 const uint8_t pinLED[10] = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5};
 const uint8_t pinNEO = 22;
 
-
 // PIUIO input and output data
 uint8_t inputData[8];
 uint8_t lampData[8];
-
-void led_blinking_task(void);
-void hid_task(void);
 
 bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
     // nothing to with DATA & ACK stage
@@ -76,52 +23,36 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_requ
 
     // Request 0xAE = IO Time
     if (request->bRequest == 0xAE) {
-        switch (request->bmRequestType_bit.type) {
-            case 0x40: // Received output data
-                // I have a feeling we may need to receive the data from another state (I.E. remove the stage setup check, above)
-                return true;
-
-            case 0xC0: // Requesting input data
-                return tud_control_xfer(rhport, request, (void *) (uintptr_t) inputData, 8);
-
+        switch (request->bmRequestType) {
+            case 0x40:
+                return tud_control_xfer(rhport, request, (void *)&lampData, 8);
+            case 0xC0:
+                return tud_control_xfer(rhport, request, (void *)&inputData, 8);
             default:
-                break;
+                return false;
         }
     }
+
+    return false;
 }
 
-// Renamed from webusb_task, do we actually need this?
-void piuio_task(void)
-{
-    // Read our switch inputs into the game-ready inputData array
-    // P1
+void piuio_task(void) {
+    const uint8_t pos[] = { 3, 0, 2, 1, 4 };
 
-    gpio_put(25, gpio_get(pinSwitch[0]));
-
-    bool input = gpio_get(pinSwitch[0]); if (input) { inputData[0] = tu_bit_set(inputData[0], 3); } else { inputData[0] = tu_bit_clear(inputData[0], 3); }
-    input = gpio_get(pinSwitch[1]); if (input) { inputData[0] = tu_bit_set(inputData[0], 0); } else { inputData[0] = tu_bit_clear(inputData[0], 0); }
-    input = gpio_get(pinSwitch[2]); if (input) { inputData[0] = tu_bit_set(inputData[0], 2); } else { inputData[0] = tu_bit_clear(inputData[0], 2); }
-    input = gpio_get(pinSwitch[3]); if (input) { inputData[0] = tu_bit_set(inputData[0], 1); } else { inputData[0] = tu_bit_clear(inputData[0], 1); }
-    input = gpio_get(pinSwitch[4]); if (input) { inputData[0] = tu_bit_set(inputData[0], 4); } else { inputData[0] = tu_bit_clear(inputData[0], 4); }
-
-    // P2
-    input = gpio_get(pinSwitch[5]); if (input) { inputData[2] = tu_bit_set(inputData[2], 3); } else { inputData[2] = tu_bit_clear(inputData[2], 3); }
-    input = gpio_get(pinSwitch[6]); if (input) { inputData[2] = tu_bit_set(inputData[2], 0); } else { inputData[2] = tu_bit_clear(inputData[2], 0); }
-    input = gpio_get(pinSwitch[7]); if (input) { inputData[2] = tu_bit_set(inputData[2], 2); } else { inputData[2] = tu_bit_clear(inputData[2], 2); }
-    input = gpio_get(pinSwitch[8]); if (input) { inputData[2] = tu_bit_set(inputData[2], 1); } else { inputData[2] = tu_bit_clear(inputData[2], 1); }
-    input = gpio_get(pinSwitch[9]); if (input) { inputData[2] = tu_bit_set(inputData[2], 4); } else { inputData[2] = tu_bit_clear(inputData[2], 4); }
-
-    inputData[2] = (gpio_get(pinSwitch[5]) ? tu_bit_set(inputData[2], 3) : tu_bit_clear(inputData[2], 3));
+    // P1 / P2
+    for (int i = 0; i < 5; i++) {
+        uint8_t* p1 = &inputData[STATE_PLAYER_1];
+        uint8_t* p2 = &inputData[STATE_PLAYER_2];
+        *p1 = gpio_get(pinSwitch[i]) ? tu_bit_set(*p1, pos[i]) : tu_bit_clear(*p1, pos[i]);
+        *p2 = gpio_get(pinSwitch[i+5]) ? tu_bit_set(*p2, pos[i]) : tu_bit_clear(*p2, pos[i]);
+    }
 
     // Test/Service
-    input = gpio_get(pinSwitch[10]); if (input) { inputData[1] = tu_bit_set(inputData[1], 1); } else { inputData[1] = tu_bit_clear(inputData[1], 1); }
-    input = gpio_get(pinSwitch[11]); if (input) { inputData[1] = tu_bit_set(inputData[1], 2); } else { inputData[1] = tu_bit_clear(inputData[1], 2); }
+    inputData[STATE_CAB_PLAYER_1] = gpio_get(pinSwitch[10]) ? tu_bit_set(inputData[1], 1) : tu_bit_clear(inputData[1], 1);
+    inputData[STATE_CAB_PLAYER_1] = gpio_get(pinSwitch[11]) ? tu_bit_set(inputData[1], 2) : tu_bit_clear(inputData[1], 2);
 }
 
-
-/*------------- MAIN -------------*/
-int main(void)
-{
+int main(void) {
     board_init();
 
     // Set up GPIO pins: Inputs first, then outputs
@@ -139,45 +70,11 @@ int main(void)
     // init device stack on configured roothub port
     tud_init(BOARD_TUD_RHPORT);
 
-
     // Main loop
-    while (1)
-    {
+    while (1) {
         tud_task(); // tinyusb device task
         piuio_task();
     }
 
     return 0;
 }
-
-//--------------------------------------------------------------------+
-// Device callbacks
-//--------------------------------------------------------------------+
-
-// Invoked when device is mounted
-void tud_mount_cb(void)
-{
-    blink_interval_ms = BLINK_MOUNTED;
-}
-
-// Invoked when device is unmounted
-void tud_umount_cb(void)
-{
-    blink_interval_ms = BLINK_NOT_MOUNTED;
-}
-
-// Invoked when usb bus is suspended
-// remote_wakeup_en : if host allow us  to perform remote wakeup
-// Within 7ms, device must draw an average of current less than 2.5 mA from bus
-void tud_suspend_cb(bool remote_wakeup_en)
-{
-    (void) remote_wakeup_en;
-    blink_interval_ms = BLINK_SUSPENDED;
-}
-
-// Invoked when usb bus is resumed
-void tud_resume_cb(void)
-{
-    blink_interval_ms = BLINK_MOUNTED;
-}
-
