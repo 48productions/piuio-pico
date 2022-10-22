@@ -14,7 +14,7 @@ const uint8_t pinLED[10] = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5};
 const uint8_t pinNEO = 22;
 
 // PIUIO input and output data
-uint8_t inputData[8];
+uint8_t inputData[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 uint8_t lampData[8];
 
 bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const * request) {
@@ -39,7 +39,7 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_requ
 void piuio_task(void) {
     const uint8_t pos[] = { 3, 0, 2, 1, 4 };
 
-    // P1 / P2
+    // P1 / P2 inputs
     for (int i = 0; i < 5; i++) {
         uint8_t* p1 = &inputData[STATE_PLAYER_1];
         uint8_t* p2 = &inputData[STATE_PLAYER_2];
@@ -47,9 +47,19 @@ void piuio_task(void) {
         *p2 = gpio_get(pinSwitch[i+5]) ? tu_bit_set(*p2, pos[i]) : tu_bit_clear(*p2, pos[i]);
     }
 
-    // Test/Service
+    // Test/Service buttons
     inputData[STATE_CAB_PLAYER_1] = gpio_get(pinSwitch[10]) ? tu_bit_set(inputData[1], 1) : tu_bit_clear(inputData[1], 1);
-    inputData[STATE_CAB_PLAYER_1] = gpio_get(pinSwitch[11]) ? tu_bit_set(inputData[1], 2) : tu_bit_clear(inputData[1], 2);
+    inputData[STATE_CAB_PLAYER_1] = gpio_get(pinSwitch[11]) ? tu_bit_set(inputData[1], 6) : tu_bit_clear(inputData[1], 6);
+
+
+    // Write pad lamps
+    for (int i = 0; i < 5; i++) {
+        gpio_put(pinLED[i], tu_bit_test(lampData[STATE_PLAYER_1], pos[i] + 2));
+        gpio_put(pinLED[i+5], tu_bit_test(lampData[STATE_PLAYER_2], pos[i] + 2));
+    }
+
+    // Write the bass neon to the onboard LED for testing + kicks
+    gpio_put(25, tu_bit_test(lampData[1], 2));
 }
 
 int main(void) {
