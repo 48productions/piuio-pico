@@ -2,7 +2,7 @@
 
 This is a WIP and *very* barebones codebase for what I hope will become a Raspberry Pi Pico-based PIUIO Clone.
 
-**This codebase is currently non-functional!**
+**This codebase is currently partially functional!**
 
 ## Hardware Setup
  - Raspberry Pi Pico
