@@ -10,7 +10,7 @@
 // WS2812 definitions
 #define IS_RGBW false
 #define NUM_PIXELS 8
-#define WS2812_PIN 0
+#define WS2812_PIN 22
 
 mutex_t mutex;
 semaphore_t sem;
@@ -21,8 +21,8 @@ const uint8_t STATE_PLAYER_2 = 2;
 
 // Set pins for the switches/LEDs
 // Order of DL, UL, C, UR, DR for each player, then test and service switches
-const uint8_t pinSwitch[12] = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4}; // map according to your button pins
-const uint8_t pinLED[10] = {16, 17, 18, 19, 20, 21, 22, 26, 27, 28}; // map according to your LED pins
+const uint8_t pinSwitch[12] = {19, 21, 10, 6, 8, 17, 27, 2, 0, 4, 15, 14}; // map according to your button pins
+const uint8_t pinLED[10] = {18, 20, 11, 7, 9, 16, 26, 3, 1, 5}; // map according to your LED pins
 const uint8_t pos[] = { 3, 0, 2, 1, 4 }; // don't touch this
 
 // PIUIO input and output data
