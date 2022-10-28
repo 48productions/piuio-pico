@@ -11,6 +11,7 @@ add_executable(piuio_pico
 
 target_sources(piuio_pico PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.c
+        ${CMAKE_CURRENT_LIST_DIR}/piuio_ws2812.c
         ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
         )
 
