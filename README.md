@@ -2,7 +2,7 @@
 
 This is a Pump it Up IO board (PIUIO) clone based on the Raspberry Pi Pico microcontroller.
 
-Though designed for [dj505's handpump controller](https://github.com/dj505/handpump), this will work with DIY hand pump controller builds, and can probably be adapted for pad use, too.
+Though designed for [dj505's PicoFX handpump controller](https://github.com/dj505/PicoFX), this will work with DIY hand pump controller builds, and can probably be adapted for pad use, too.
 
 ## Hardware Setup
 You don't need many components to put one together:
@@ -10,7 +10,8 @@ You don't need many components to put one together:
  - 12x switches (for the 10 pad switches, plus test and service buttons)
  - 10x LEDs and appropriate resistors
 
-<pinouts/schematics coming soon>
+By default the pins are configured as shown below, but the pins can be changed in `piuio_config.h`.
+![Schematic](Schematic.png)
 
 ## Firmware Setup
 [See the Pi Pico SDK repo](https://github.com/raspberrypi/pico-sdk) for instructions on preparing the build environment. All the required CMake files should already be present and ready for compilation.
