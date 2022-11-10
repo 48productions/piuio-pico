@@ -10,7 +10,16 @@
 #include "piuio_ws2812.h"
 #endif
 
-const uint8_t pos[] = { 3, 0, 2, 1, 4 }; // don't touch this
+// Switch -> PIUIO input/output bytes mappings
+// And the offset between the bit positions in the input byte and the bit positions in the output bytes for panel data
+// (don't touch)
+#ifdef ENABLE_BUTTON_BOARD // The mappings change between the piuio and button board
+const uint8_t pos[] = { 1, 0, 3, 0, 2 };
+const uint8_t lightsOffset = 0;
+#else
+const uint8_t pos[] = { 3, 0, 2, 1, 4 };
+const uint8_t lightsOffset = 2;
+#endif
 
 // PIUIO input and output data
 uint8_t inputData[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -54,8 +63,8 @@ void piuio_task(void) {
 
     // Write pad lamps
     for (int i = 0; i < 5; i++) {
-        gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], pos[i] + 2));
-        gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_2], pos[i] + 2));
+        gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], pos[i] + lightsOffset));
+        gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_2], pos[i] + lightsOffset));
     }
 
     // Write the bass neon to the onboard LED for testing + kicks
