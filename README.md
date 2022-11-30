@@ -25,6 +25,11 @@ General overview:
  - The Pico will now show up as a "flash drive" in your OS. Copy the .UF2 file onto the Pico, and the code will be uploaded!
 
 
+## PIU Online Notice
+Using a hand controller with games connected to the official Pump it Up online service is considered cheating by Andamiro and may lead to actions being taken against your account.
+As such, this use case is not officially endorsed by piuio-pico.
+
+
 ## Credits
 This project is based off of the [tinyusb device USB examples](https://github.com/hathach/tinyusb/tree/master/examples/device) (specifically webusb_serial and hid_generic_input)
 
