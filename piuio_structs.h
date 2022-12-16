@@ -13,7 +13,7 @@ struct lampArray {
         uint8_t data[8];
         struct {
             // p1 cmd byte 0
-            uint8_t empty : 2;
+            uint8_t p1_mux : 2;
             uint8_t p1_ul_light : 1;
             uint8_t p1_ur_light : 1;
             uint8_t p1_cn_light : 1;
@@ -27,7 +27,7 @@ struct lampArray {
             uint8_t empty3 : 5;
 
             // p2 cmd byte 2
-            uint8_t empty4 : 2;
+            uint8_t p2_mux : 2;
             uint8_t p2_ul_light : 1;
             uint8_t p2_ur_light : 1;
             uint8_t p2_cn_light : 1;
