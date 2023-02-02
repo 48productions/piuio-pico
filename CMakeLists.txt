@@ -5,6 +5,8 @@ include(pico_sdk_import.cmake)
 
 project(piuio_pico)
 
+set(CMAKE_CXX_STANDARD 11)
+
 pico_sdk_init()
 
 add_executable(piuio_pico

@@ -15,10 +15,8 @@
 // (don't touch)
 #ifdef ENABLE_BUTTON_BOARD // The mappings change between the piuio and button board
 const uint8_t pos[] = { 1, 0, 3, 0, 2 };
-const uint8_t lightsOffset = 0;
 #else
 const uint8_t pos[] = { 3, 0, 2, 1, 4 };
-const uint8_t lightsOffset = 2;
 #endif
 
 // PIUIO input and output data
@@ -50,6 +48,20 @@ void piuio_task(void) {
     #endif
 
     // P1 / P2 inputs
+    #ifdef ENABLE_BUTTON_BOARD // Button board only uses 1 byte for all the inputs
+    for (int i = 0; i < 5; i++) {
+        uint8_t* btn = &inputData[PLAYER_1];
+		// Extra logic - UL/UR should both map to select (for LX-style or PicoFX-based button boards)
+		// If we're reading UR (input index 3), skip reading if UL was found to be pressed. This effectively ORs the inputs together
+		if (i != 3 || tu_bit_test(*btn, 0)) {
+			*btn = gpio_get(pinSwitch[i]) ? tu_bit_set(*btn, pos[i]) : tu_bit_clear(*btn, pos[i]);
+		}
+		if (i != 3 || tu_bit_test(*btn, 4)) {
+			*btn = gpio_get(pinSwitch[i+5]) ? tu_bit_set(*btn, pos[i]+4) : tu_bit_clear(*btn, pos[i]+4);
+		}
+    }
+    
+    #else // For the pad IO, read inputs into two bytes, and read the test/service switches
     for (int i = 0; i < 5; i++) {
         uint8_t* p1 = &inputData[PLAYER_1];
         uint8_t* p2 = &inputData[PLAYER_2];
@@ -60,12 +72,24 @@ void piuio_task(void) {
     // Test/Service buttons
     inputData[CABINET] = gpio_get(pinSwitch[10]) ? tu_bit_set(inputData[1], 1) : tu_bit_clear(inputData[1], 1);
     inputData[CABINET] = gpio_get(pinSwitch[11]) ? tu_bit_set(inputData[1], 6) : tu_bit_clear(inputData[1], 6);
+    #endif
 
-    // Write pad lamps
-    for (int i = 0; i < 5; i++) {
-        gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], pos[i] + lightsOffset));
-        gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_2], pos[i] + lightsOffset));
-    }
+
+    // Write pad/button lamps
+	#ifdef ENABLE_BUTTON_BOARD // Button board only uses 1 byte for outputs
+	for (int i = 0; i < 5; i++) {
+		gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], pos[i]));
+		gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_1], pos[i]+4));
+	}
+	
+	#else // Pad IO: Use both bytes
+	for (int i = 0; i < 5; i++) {
+		gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], pos[i]+2));
+		gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_2], pos[i]+2));
+	}
+	#endif
+	
+	
 
     // Write the bass neon to the onboard LED for testing + kicks
     gpio_put(25, lamp.bass_light);
