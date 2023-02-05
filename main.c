@@ -11,12 +11,13 @@
 #endif
 
 // Switch -> PIUIO input/output bytes mappings
-// And the offset between the bit positions in the input byte and the bit positions in the output bytes for panel data
+// And the offset between the index of the pinSwitch array and the bit position in the input byte to map that input pin to
 // (don't touch)
 #ifdef ENABLE_BUTTON_BOARD // The mappings change between the piuio and button board
-const uint8_t pos[] = { 1, 0, 3, 0, 2 };
+const uint8_t pos[]      = { 1, 0, 3, 0, 2 }; // Map L, O, S, O, R -> O, L, R, S
+const uint8_t lightpos[] = { 2, 3, 0, 3, 1 }; // Map L, O, S, O, R -> S, L, R, O
 #else
-const uint8_t pos[] = { 3, 0, 2, 1, 4 };
+const uint8_t pos[] = { 3, 0, 2, 1, 4 }; // Map DL, UL, C, UR, DR -> UL, UR, C, DL, DR
 #endif
 
 // PIUIO input and output data
@@ -78,8 +79,8 @@ void piuio_task(void) {
     // Write pad/button lamps
 	#ifdef ENABLE_BUTTON_BOARD // Button board only uses 1 byte for outputs
 	for (int i = 0; i < 5; i++) {
-		gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], pos[i]));
-		gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_1], pos[i]+4));
+		gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], lightpos[i]+4));
+		gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_1], lightpos[i]));
 	}
 	
 	#else // Pad IO: Use both bytes
