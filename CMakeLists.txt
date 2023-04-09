@@ -41,3 +41,7 @@ pico_add_extra_outputs(piuio_pico)
 pico_enable_stdio_usb(piuio_pico 0)
 pico_enable_stdio_uart(piuio_pico 0)
 pico_add_extra_outputs(piuio_pico)
+
+add_compile_definitions(
+    PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64
+)
